@@ -1,98 +1,83 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import CustomButton from '@/components/Button';
+import CustomImage from '@/components/Image';
 import { Link } from 'expo-router';
+import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+const imageSource = require("@/assets/images/homepage.webp");
+export default function Index() {
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <ScrollView>
+      <View
+        style={styles.container}
+      >
+        <CustomImage source={imageSource} />
+        <Text
+          style={{
+            fontSize: 20,          // ~ text-4xl
+            fontWeight: "700",     // font-bold
+            color: "#111827",      // text-gray-900
+            lineHeight: 22,        // leading-tight
+          }}
+        >Parents arriving today or tomorrow?
+        </Text>
+        <View>
+          <Text style={{
+            fontSize: 20,
+            fontWeight: "700",
+            color: "#111827",
+            lineHeight: 22,
+          }}> We personally</Text>
+          <Text style={{
+            color: "#1D4ED8", fontSize: 20, fontWeight: "700",
+            lineHeight: 22,
+          }}>
+            {" "}receive them at the station/airport and drop them home safely
+          </Text>
+          <Text style={{
+            fontSize: 20,
+            fontWeight: "700",
+            color: "#111827",
+            lineHeight: 22,
+          }}> — and also</Text>
+          <Text style={{
+            color: "#15803D", fontSize: 20, fontWeight: "700",
+            lineHeight: 22,
+          }}>
+            {" "}receive them at home and drop them at the station/airport
+          </Text>.
+        </View>
+        <Text
+          style={{
+            fontSize: 18,          // text-lg
+            color: "#4B5563",      // text-gray-600
+            lineHeight: 26,
+            maxWidth: 520,
+            marginTop: 10       // max-w-xl
+          }}
+        >
+          A trained Care Companion receives your parent at the airport/railway
+          station and ensures a safe drop home — or receives them from home and
+          drops them at the airport/railway station — with live updates for you.
+        </Text>
+        <Button title="call us" onPress={() => { alert("button is clicked") }} />
+        <CustomButton label='Welcome' onPress={() => { alert("Pressable button is clicked") }} />
+        <Link href="/about"><Text>Go to About page</Text></Link>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F3F6F8",
+    margin: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+  text: {
+    color: "gray"
+  }
+})

@@ -1,35 +1,52 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs } from "expo-router";
+import { StatusBar } from 'expo-status-bar';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+const TabLayout = () => {
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+    return <> <StatusBar style='light'/><Tabs
+        screenOptions={{
+            headerStyle: {
+                backgroundColor: "#364153"
+            },
+            headerTintColor: "white",
+            tabBarStyle: {
+                backgroundColor: "#364153"
+            },
+            tabBarActiveTintColor: "white"
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+    >
+        <Tabs.Screen name="index" options={{
+            headerTitle: "Care2home", tabBarIcon: (props) => {
+                return <Ionicons name={props.focused ? "home-sharp" : "home-outline"} color={props.color} size={24} />
+            },
+        }} />
+        <Tabs.Screen name="about" options={{
+            headerTitle: "About us",
+            tabBarIcon: (props) => {
+                return <Ionicons name={props.focused ? "information-circle" : "information-circle-outline"} color={props.color} size={24} />
+            },
+        }} />
+        <Tabs.Screen name="contact" options={{
+            headerTitle: "Contact us",
+            tabBarIcon: (props) => {
+                return <Ionicons name={props.focused ? 'person-circle-sharp' : 'person-circle-outline'} color={props.color} size={24} />
+            },
+        }} />
+        <Tabs.Screen name="pricing" options={{
+            headerTitle: "Pricing", tabBarIcon: (props) => {
+                return <Ionicons name={props.focused ? 'pricetag-sharp' : 'pricetag-outline'} color={props.color} size={24} />
+            },
         }}
-      />
-    </Tabs>
-  );
+        />
+        <Tabs.Screen name="booking" options={{
+            headerTitle: "Book service", tabBarIcon: (props) => {
+                return <Ionicons name={props.focused ? 'calendar-number' : 'calendar-number-outline'} color={props.color} size={24} />
+            },
+        }}
+        />
+    </Tabs >
+    </>
 }
+
+export default TabLayout;
