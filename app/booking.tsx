@@ -13,7 +13,7 @@ const BookingService = () => {
     const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
     const [showAppOptions, setShowAppOptions] = useState<boolean>(false);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-    const [selectEmoji,setSelectEmoji]=useState<ImageSourcePropType|undefined>(undefined);
+    const [selectEmoji, setSelectEmoji] = useState<ImageSourcePropType | undefined>(undefined);
     const ChooseImageFromDevice = async () => {
         const result = await launchImageLibraryAsync({
             mediaTypes: ['images'],
@@ -40,7 +40,7 @@ const BookingService = () => {
         alert("Save button is clicked");
     }
 
-    const OnCloseModal=()=>{
+    const OnCloseModal = () => {
 
         setIsModalVisible(false);
     }
@@ -50,13 +50,13 @@ const BookingService = () => {
         {<CustomImage source={selectedImage || imageSource} />}
         <CustomButton label='Choose ticket image' onPress={ChooseImageFromDevice} />
         <EmojiPicker onPress={OnCloseModal} isVisible={isModalVisible} >
-            <EmojiList onSelectEmoji={setSelectEmoji} closeModal={OnCloseModal}/>
+            <EmojiList onSelectEmoji={setSelectEmoji} closeModal={OnCloseModal} />
         </EmojiPicker>
-        {selectEmoji &&<ImageSticker image={selectEmoji} size={50}/>}
+        {selectEmoji && <ImageSticker image={selectEmoji} size={50} />}
         {showAppOptions ? <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', }} >
             <IconButton label='Reset' icon='refresh' onPress={Reset} />
-            <CircleButton onPress={()=>{setIsModalVisible(true)}}/>
-            <IconButton label='Save' icon='save-alt' onPress={SaveImage} /></View> : <CustomButton label='Choose the default image' onPress={()=>{setShowAppOptions(true)}} />}
+            <CircleButton onPress={() => { setIsModalVisible(true) }} />
+            <IconButton label='Save' icon='save-alt' onPress={SaveImage} /></View> : <CustomButton label='Choose the default image' onPress={() => { setShowAppOptions(true) }} />}
     </View>
 }
 
