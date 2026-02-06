@@ -1,6 +1,8 @@
+import firestore from '@react-native-firebase/firebase'
+import Storage from '@react-native-firebase/storage';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { launchImageLibraryAsync } from "expo-image-picker";
 import React, { useState } from "react";
 import {
     Alert,
@@ -12,6 +14,8 @@ import {
     TextInput,
     View
 } from "react-native";
+;
+
 
 export default function BookCareElement() {
     const [phone, setPhone] = useState("");
@@ -22,55 +26,106 @@ export default function BookCareElement() {
     // BackHandler.addEventListener('hardwareBackPress',()=>{
     //     return false;
     //   });
+
+    
+    const fileName = `ticket_${Date.now()}.jpg`;
+    const storageRef = Storage().ref(`care2home/images/${fileName}`);
     const ChooseImageFromDevice = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
+      
         if (!permission.granted) {
-            Alert.alert("Permission required", "Please allow photo access");
+          Alert.alert("Permission required", "Please allow photo access");
+          return;
+        }
+      
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          quality: 1,
+        });
+      
+        if (result.canceled) {
+          Alert.alert("No image selected");
+          return;
+        }
+      
+        try {
+          const asset = result.assets[0];      
+          setSelectedImage(asset.uri);
+        } catch (error) {
+          console.error(error);
+          Alert.alert("Upload failed", "Please try again");
+        }
+      };
+      
+
+    const sendToWhatsApp =async () => {
+        if (!selectedImage || !phone || !emergency || !userAddress) {
+            Alert.alert("Missing info", "Please fill all required fields");
             return;
         }
-        const result = await launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: true,
-            quality: 1,
-            allowsMultipleSelection: false
-        })
-        if (!result.canceled) {
-            console.log("cc", result);
-            setSelectedImage(result.assets[0].uri);
+        const fileName = `ticket_${Date.now()}.jpg`;
+    //   const responseess=  await Storage()
+    //     .ref(`care2home/images/${fileName}`)
+    //     .putFile(selectedImage);
+console.log("AAAAAAAAAAAAAAAAAAA",{
+    phone: phone,
+    emergency: emergency,
+    userAddress: userAddress,
+    selectedImage: selectedImage,
+})
 
-        } else {
-            alert("You did not select any image");
-        }
-    }
+try {
+    const docRef = await firestore()
+      .collection('orders')
+      .add({
+        phone,
+        emergency,
+        userAddress,
+        selectedImage,
+      });
 
-    const sendToWhatsApp = () => {
-      if (!selectedImage || !phone || !emergency || !userAddress) {
-        Alert.alert("Missing info", "Please fill all required fields");
-        return;
-      }
+    console.log('🔥 DOC ID:', docRef.id);
+    Alert.alert('Order placed', docRef.id);
+  } catch (error) {
+    console.error('Firestore error:', error);
+    Alert.alert('Order Error');
+  }
+// const docRef = await firestore()
+// .collection('orders')
+// .add({
+//   phone,
+//   emergency,
+//   userAddress,
+//   selectedImage,
+// });
+
+// setPhone('');
+// setEmail('');
+// setUserAddress('');
+// setSelectedImage('');
+// setEmergency('');
+    //     const message = `
+    // 📌 *Care2Home Booking Request*
     
-      const message = `
-    📌 *Care2Home Booking Request*
+    // 📞 Phone: ${phone}
+    // 🚨 Emergency Contact: ${emergency}
+    // 📍 Address: ${userAddress}
     
-    📞 Phone: ${phone}
-    🚨 Emergency Contact: ${emergency}
-    📍 Address: ${userAddress}
+    // 🖼️ Ticket Image: Uploaded (will send manually)
     
-    🖼️ Ticket Image: Uploaded (will send manually)
-    
-    Please confirm the booking.
-    `;
-    
-      const whatsappNumber = "919910646415"; // Care2Home number (no +)
-    
-      const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        message
-      )}`;
-    
-      Linking.openURL(url);
+    // Please confirm the booking.
+    // `;
+
+    //     const whatsappNumber = "919910646415"; // Care2Home number (no +)
+
+    //     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    //         message
+    //     )}`;
+
+    //     Linking.openURL(url);
     };
-    
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
