@@ -1,8 +1,17 @@
+import { AuthContext } from '@/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useContext } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 
+const profilePlaceholder=require('@/assets/images/profile.png');
 export default function ProfileScreen() {
+
+  const Auth=useContext(AuthContext);
+  if(!Auth){
+    return
+  }
+const user=Auth.user;
   return (
     <ScrollView style={{ flex: 1, backgroundColor: '#F5F6FA' }}>
       {/* HEADER */}
@@ -14,7 +23,7 @@ export default function ProfileScreen() {
         }}
       >
         <Image
-          source={{ uri: 'https://i.pravatar.cc/150' }}
+          source={profilePlaceholder}
           style={{
             width: 100,
             height: 100,
@@ -23,15 +32,13 @@ export default function ProfileScreen() {
           }}
         />
 
-        <Text style={{ color: '#fff', fontSize: 20, fontWeight: '600' }}>
-          Sumit Kumar
-        </Text>
+        
         <Text style={{ color: '#CBD5E1', fontSize: 14 }}>
-          sumit@email.com
+         {user.email}
         </Text>
 
         <Pressable
-          onPress={() => router.push('/')}
+          onPress={() => router.push('/editprofile')}
           style={{
             marginTop: 16,
             backgroundColor: '#fff',
@@ -72,20 +79,7 @@ export default function ProfileScreen() {
         <ActionItem
           icon="book-outline"
           title="My Orders"
-          onPress={() => router.push('/')}
-        />
-
-        <ActionItem
-          icon="settings-outline"
-          title="Settings"
-          onPress={() => router.push('/')}
-        />
-
-        <ActionItem
-          icon="log-out-outline"
-          title="Logout"
-          danger
-          onPress={() => console.log('Logout')}
+          onPress={() => router.push('/mybookings')}
         />
       </View>
     </ScrollView>

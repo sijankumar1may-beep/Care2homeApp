@@ -4,7 +4,7 @@
     "slug": "care2home",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/care2homeicon.png",
+    "icon": "./assets/images/applogo.png",
     "scheme": "care2home",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,9 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/care2homeicon.png",
-        "backgroundImage": "./assets/images/care2homeicon.png",
-        "monochromeImage": "./assets/images/care2homeicon.png"
+        "foregroundImage": "./assets/images/applogo.png",
+        "backgroundImage": "./assets/images/applogo.png",
+        "monochromeImage": "./assets/images/applogo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -32,10 +32,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/fullicon.png",
+          "image": "./assets/images/fulliconnew.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#364153",
           "dark": {
             "backgroundColor": "#F3F6F8"
           }

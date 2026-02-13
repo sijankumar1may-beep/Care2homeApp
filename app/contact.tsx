@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import firestore from '@react-native-firebase/firestore';
 import React, { JSX, useState } from 'react';
 import {
-    Alert,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-
 /* ---------- Types ---------- */
 
 type ContactForm = {
@@ -37,10 +37,15 @@ export default function ContactScreen(): JSX.Element {
 
   const onSubmit = () => {
     // TODO: replace with API call
-    Alert.alert(
-      'Message Sent',
-      'Thanks for contacting us. We will get back to you shortly.'
-    );
+
+    firestore().collection("Contacts").add(form).then(()=>{
+      Alert.alert(
+        'Message Sent',
+        'Thanks for contacting us. We will get back to you shortly.'
+      );
+    }).catch(()=>{
+      Alert.alert("Dear user","Some error has occures, please try later! or contact us via whatsapp")
+    })
     setForm({
       firstName: '',
       lastName: '',

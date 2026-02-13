@@ -1,14 +1,16 @@
 // app/(drawer)/CustomDrawerContent.tsx
 
 import { Ionicons } from '@expo/vector-icons';
+import { getAuth, signOut } from '@react-native-firebase/auth';
 import {
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 /* ---------- Types ---------- */
-
+import { AuthContext } from '@/auth/AuthContext';
+import { useContext } from 'react';
 type NavLink = {
   label: string;
   route: string;
@@ -23,7 +25,6 @@ const NAV_LINKS: NavLink[] = [
   { label: 'Profile', route: '/profile', icon: 'person-outline' },
   { label: 'About Us', route: '/about', icon: 'information-circle-outline' },
   { label: 'Contact Us', route: '/contact', icon: 'call-outline' },
-  { label: 'Settings', route: '/settings', icon: 'settings-outline' },
   {
     label: 'Logout',
     route: '/logout',
@@ -33,13 +34,24 @@ const NAV_LINKS: NavLink[] = [
 ];
 
 /* ---------- Component ---------- */
-
+const profilePlaceholder = require('@/assets/images/profile.png');
 export default function CustomDrawerContent(props: any) {
+  const Auth = useContext(AuthContext);
+    if (!Auth) return null;
+
+    const user = Auth.user;
   const { navigation } = props;
 
   const handleNavigate = (route: string) => {
-    (navigation as any).closeDrawer();
-    router.push(route as any);
+
+    if (route == '/logout') {
+      Alert.alert("Dear user", "Do you want to log out?", [{ text: "Yes", onPress: () => { signOut(getAuth()).then(() => { }) }, style: 'default' }, { text: "No", onPress: () => { }, style: 'default' }]);
+
+    } else {
+      (navigation as any).closeDrawer();
+      router.push(route as any);
+    }
+
 
   };
 
@@ -56,20 +68,16 @@ export default function CustomDrawerContent(props: any) {
         }}
       >
         <Image
-          source={{ uri: 'https://i.pravatar.cc/150' }}
+          source={profilePlaceholder}
           style={{
             width: 100,
             height: 100,
             borderRadius: 50,
             marginBottom: 12,
           }}
-        />
-
-        <Text style={{ color: '#000', fontSize: 20, fontWeight: '600' }}>
-          Sumit Kumar
-        </Text>
+        />      
         <Text style={{ color: '#000', fontSize: 14 }}>
-          sumit@email.com
+          {user.email}
         </Text>
       </View>
       <View>

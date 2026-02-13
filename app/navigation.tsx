@@ -63,7 +63,7 @@ const NAV_LINKS: NavLink[] = [
 ];
 
 /* ---------- Component ---------- */
-
+const profilePlaceholder=require('@/assets/images/profile.png');
 export default function NavigationLinks({
   onNavigate,
 }: NavigationLinksProps): JSX.Element {

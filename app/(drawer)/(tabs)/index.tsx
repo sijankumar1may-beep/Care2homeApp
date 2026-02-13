@@ -13,93 +13,99 @@ import {
   Text,
   View
 } from "react-native";
+
 const imageSource = require("@/assets/images/homepage.png");
 const { width } = Dimensions.get("window");
 
 export default function HomeHeroCard() {
 
   const openWhatsapp = () => {
-
-    const phoneNumber = "919910646415"; // example
+    const phoneNumber = "919910646415";
     const message = "Hello, I want to book Care2Home service";
-
-    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
-      message
-    )}`;
+    const url = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
 
     Linking.openURL(url).catch(() => {
       Alert.alert("WhatsApp not installed");
     });
   }
 
-  
   useEffect(() => {
-
     const backAction = () => {
       Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-        {
-          text: 'Cancel',
-          onPress: () => null,
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         { text: 'YES', onPress: () => BackHandler.exitApp() },
       ]);
       return false;
     }
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-    return () => { return backHandler.remove(); }
-  }, [])
-
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <ScrollView>
       <View style={styles.wrapper}>
-        {/* BLUE HERO SECTION */}
+
+        {/* HERO SECTION */}
         <View style={styles.hero}>
           <Text style={styles.title}>
             Parents arriving today or tomorrow?
           </Text>
 
           <Text style={styles.subtitle}>
-            We personally receive them at the station/airport and drop them home safely and also receive them at
-            home and drop them at the station/airport.
+            We personally receive them at the station/airport and drop them home safely —
+            and also receive them at home and drop them to the station/airport.
           </Text>
 
-          {/* IMAGE PLACEHOLDER */}
           <View style={styles.imageBox}>
             <Ionicons name="people" size={48} color="#111827" />
           </View>
 
-          {/* BUTTONS */}
           <View style={styles.buttonRow}>
             <Link href={'/bookservice'} asChild>
               <Pressable style={styles.primaryBtn}>
                 <Text style={styles.primaryBtnText}>Book Online</Text>
               </Pressable>
             </Link>
+
             <Pressable style={styles.secondaryBtn} onPress={openWhatsapp}>
               <Text style={styles.secondaryBtnText}>WhatsApp</Text>
             </Pressable>
-
           </View>
+
           <View style={{ padding: 16, marginTop: 10 }}>
-            <Image source={imageSource} style={{ width: 280, height: 300, borderRadius: 20 }} contentFit='contain' />
+            <Image
+              source={imageSource}
+              style={{ width: 280, height: 300, borderRadius: 20 }}
+              contentFit='contain'
+            />
           </View>
         </View>
 
-        {/* WHITE INFO CARD */}
+        {/* TRUST INFO CARD */}
         <View style={styles.infoCard}>
           <InfoItem text="Background-verified companions" />
           <InfoItem text="Doorstep responsibility" />
-          <InfoItem text="Live journey updates" />
+          <InfoItem text="Live journey updates for family" />
+          <InfoItem text="Wheelchair assistance available" />
+          <InfoItem text="Emergency support throughout the journey" />
         </View>
+
+        {/* HOW IT WORKS */}
+        <View style={styles.howCard}>
+          <Text style={styles.howTitle}>How Care2Home Works</Text>
+
+          <HowStep icon="calendar-outline" text="Book the service online or via WhatsApp" />
+          <HowStep icon="walk-outline" text="We receive your parents safely" />
+          <HowStep icon="home-outline" text="Secure drop & live family updates" />
+        </View>
+
       </View>
     </ScrollView>
   );
 }
 
-/* ---------- SMALL REUSABLE ROW ---------- */
+/* ---------- SMALL COMPONENTS ---------- */
+
 function InfoItem({ text }: { text: string }) {
   return (
     <View style={styles.infoRow}>
@@ -109,7 +115,17 @@ function InfoItem({ text }: { text: string }) {
   );
 }
 
+function HowStep({ icon, text }: { icon: string; text: string }) {
+  return (
+    <View style={styles.howRow}>
+      <Ionicons name={icon as any} size={20} color="#364153" />
+      <Text style={styles.howText}>{text}</Text>
+    </View>
+  );
+}
+
 /* ---------- STYLES ---------- */
+
 const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 16,
@@ -186,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
-    marginTop: 10, // overlap effect
+    marginTop: 10,
     elevation: 4,
   },
 
@@ -201,5 +217,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#111827",
     fontWeight: "500",
+  },
+
+  howCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 12,
+  },
+
+  howTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+    color: "#111827",
+  },
+
+  howRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+
+  howText: {
+    marginLeft: 10,
+    fontSize: 14,
+    color: "#374151",
   },
 });

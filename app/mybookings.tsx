@@ -1,74 +1,82 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { AuthContext } from '@/auth/AuthContext';
+import firestore from '@react-native-firebase/firestore';
+import React, { useContext, useEffect, useState } from 'react';
 import {
-    FlatList,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
-
 /* ---------- Types ---------- */
 
 type TabType = 'active' | 'upcoming' | 'completed';
 
 type Booking = {
-  id: string;
   bookingId: string;
-  from: string;
-  to: string;
-  date: string;
-  time: string;
   status: string;
   statusColor: string;
-  driver: string;
-  rating: string;
-  vehicle: string;
-  actions: string[];
-};
-
-/* ---------- Mock Data ---------- */
-
-const BOOKINGS: Record<TabType, Booking[]> = {
-  active: [
-    {
-      id: '1',
-      bookingId: '#CH2024001',
-      from: 'IGI Airport T3',
-      to: 'Dwarka Sector 10',
-      date: 'Today, 29 Jan 2026',
-      time: '10:00 AM',
-      status: 'In Progress',
-      statusColor: '#22C55E',
-      driver: 'Rajesh Kumar',
-      rating: '4.9',
-      vehicle: 'Auto',
-      actions: ['Track Live', 'Call'],
-    },
-  ],
-  upcoming: [
-    {
-      id: '2',
-      bookingId: '#CH2024002',
-      from: 'Home',
-      to: 'New Delhi Station',
-      date: '30 Jan 2026',
-      time: '7:00 AM',
-      status: 'Tomorrow',
-      statusColor: '#F59E0B',
-      driver: 'Priya Sharma',
-      rating: '5.0',
-      vehicle: 'Car',
-      actions: ['Edit', 'Details'],
-    },
-  ],
-  completed: [],
+  careCompanion: string;
+  ImageUrl: string;
+  email: string;
+  emergency?: string;
+  phone: string;
 };
 
 /* ---------- Screen ---------- */
 
 export default function MyBookingsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('active');
+  const [bookingsByTab, setBookingsByTab] = useState<Record<TabType, Booking[]>>({
+    active: [],
+    upcoming: [],
+    completed: [],
+  });
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
+
+  const AdditionData = {
+    bookingId: '#CH2024001',
+    status: 'In Progress',
+    statusColor: '#22C55E',
+    careCompanion: 'Deepak kumar',
+  };
+
+  // Load bookings when the logged-in user's email is available
+  useEffect(() => {
+    console.log('MyBookingsScreen mounted, user =', user?.email);
+
+    if (!user?.email) {
+      console.log('No user email yet, skipping bookings fetch');
+      return;
+    }
+
+    async function getAllMyOrders() {
+      const snapshot = await firestore()
+        .collection('orders')
+        .where('userEmal', '==', user.email)
+        .get();
+
+      const bookings = snapshot.docs.map((doc) => ({
+        bookingId: AdditionData.bookingId,
+        status: AdditionData.status,
+        statusColor: AdditionData.statusColor,
+        careCompanion: AdditionData.careCompanion,
+        ImageUrl: doc.data().ImageUrl ?? '',
+        email: doc.data().email ?? '',
+        emergency: doc.data().emergency,
+        phone: doc.data().phone ?? '',
+      }));
+
+      console.log('Bookings for user', user.email, bookings);
+      setBookingsByTab((prev) => ({
+        ...prev,
+        active: bookings,
+      }));
+    }
+
+    getAllMyOrders();
+  }, [user?.email]);
 
   return (
     <View style={styles.container}>
@@ -81,8 +89,8 @@ export default function MyBookingsScreen() {
 
       {/* Booking List */}
       <FlatList
-        data={BOOKINGS[activeTab]}
-        keyExtractor={(item) => item.id}
+        data={bookingsByTab[activeTab]}
+        keyExtractor={(item,index) => item.bookingId+index}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No bookings found</Text>
@@ -123,11 +131,12 @@ function Tab({
 /* ---------- Booking Card ---------- */
 
 function BookingCard({ booking }: { booking: Booking }) {
+  const number=(Math.random()*100).toFixed();
   return (
     <View style={styles.card}>
       {/* Top Row */}
       <View style={styles.rowBetween}>
-        <Text style={styles.bookingId}>ID: {booking.bookingId}</Text>
+        <Text style={styles.bookingId}>ID: {booking.bookingId+number}</Text>
         <View
           style={[
             styles.statusBadge,
@@ -138,40 +147,23 @@ function BookingCard({ booking }: { booking: Booking }) {
         </View>
       </View>
 
-      {/* Route */}
+      {/* Care Companion */}
       <Text style={styles.route}>
-        {booking.from} → {booking.to}
+        Care Companion: {booking.careCompanion}
       </Text>
 
-      {/* Date */}
+      {/* Contact Details */}
       <View style={styles.row}>
-        <Ionicons name="calendar-outline" size={16} />
-        <Text style={styles.dateText}>
-          {booking.date} • {booking.time}
-        </Text>
+        <Text style={styles.dateText}>Phone: {booking.phone}</Text>
       </View>
-
-      <View style={styles.divider} />
-
-      {/* Driver */}
       <View style={styles.row}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={20} color="#FFF" />
+        <Text style={styles.dateText}>Email: {booking.email}</Text>
+      </View>
+      {booking.emergency ? (
+        <View style={styles.row}>
+          <Text style={styles.dateText}>Emergency: {booking.emergency}</Text>
         </View>
-        <Text style={styles.driver}>
-          {booking.driver}{' '}
-          <Text style={styles.rating}>⭐ {booking.rating} • {booking.vehicle}</Text>
-        </Text>
-      </View>
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        {booking.actions.map((action) => (
-          <Pressable key={action} style={styles.actionBtn}>
-            <Text style={styles.actionText}>{action}</Text>
-          </Pressable>
-        ))}
-      </View>
+      ) : null}
     </View>
   );
 }

@@ -1,19 +1,19 @@
-import firestore from '@react-native-firebase/firebase'
+import { AuthContext } from '@/auth/AuthContext';
+import firestore from '@react-native-firebase/firestore';
 import Storage from '@react-native-firebase/storage';
-import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
-    Linking,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     View
-} from "react-native";
+} from 'react-native';
 ;
 
 
@@ -23,107 +23,100 @@ export default function BookCareElement() {
     const [emergency, setEmergency] = useState("");
     const [selectedImage, setSelectedImage] = useState<string | undefined>(undefined);
     const [userAddress, setUserAddress] = useState<string | undefined>(undefined);
-    // BackHandler.addEventListener('hardwareBackPress',()=>{
-    //     return false;
-    //   });
-
-    
+    const [isDataSaving, setIsDataSaving] = useState(false);
+    const auth=useContext(AuthContext);
+    const loggedUser=auth?.user;
     const fileName = `ticket_${Date.now()}.jpg`;
     const storageRef = Storage().ref(`care2home/images/${fileName}`);
     const ChooseImageFromDevice = async () => {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-        if (!permission.granted) {
-          Alert.alert("Permission required", "Please allow photo access");
-          return;
-        }
-      
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 1,
-        });
-      
-        if (result.canceled) {
-          Alert.alert("No image selected");
-          return;
-        }
-      
-        try {
-          const asset = result.assets[0];      
-          setSelectedImage(asset.uri);
-        } catch (error) {
-          console.error(error);
-          Alert.alert("Upload failed", "Please try again");
-        }
-      };
-      
 
-    const sendToWhatsApp =async () => {
-        if (!selectedImage || !phone || !emergency || !userAddress) {
-            Alert.alert("Missing info", "Please fill all required fields");
+        if (!permission.granted) {
+            Alert.alert("Permission required", "Please allow photo access");
             return;
         }
-        const fileName = `ticket_${Date.now()}.jpg`;
-    //   const responseess=  await Storage()
-    //     .ref(`care2home/images/${fileName}`)
-    //     .putFile(selectedImage);
-console.log("AAAAAAAAAAAAAAAAAAA",{
-    phone: phone,
-    emergency: emergency,
-    userAddress: userAddress,
-    selectedImage: selectedImage,
-})
 
-try {
-    const docRef = await firestore()
-      .collection('orders')
-      .add({
-        phone,
-        emergency,
-        userAddress,
-        selectedImage,
-      });
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: false,
+            quality: 1,
 
-    console.log('🔥 DOC ID:', docRef.id);
-    Alert.alert('Order placed', docRef.id);
-  } catch (error) {
-    console.error('Firestore error:', error);
-    Alert.alert('Order Error');
-  }
-// const docRef = await firestore()
-// .collection('orders')
-// .add({
-//   phone,
-//   emergency,
-//   userAddress,
-//   selectedImage,
-// });
+        });
 
-// setPhone('');
-// setEmail('');
-// setUserAddress('');
-// setSelectedImage('');
-// setEmergency('');
-    //     const message = `
-    // 📌 *Care2Home Booking Request*
-    
-    // 📞 Phone: ${phone}
-    // 🚨 Emergency Contact: ${emergency}
-    // 📍 Address: ${userAddress}
-    
-    // 🖼️ Ticket Image: Uploaded (will send manually)
-    
-    // Please confirm the booking.
-    // `;
+        if (result.canceled) {
+            Alert.alert("No image selected");
+            return;
+        }
 
-    //     const whatsappNumber = "919910646415"; // Care2Home number (no +)
+        try {
+            const asset = result.assets[0];
+            setSelectedImage(asset.uri);
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Upload failed", "Please try again");
+        }
+    };
 
-    //     const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    //         message
-    //     )}`;
 
-    //     Linking.openURL(url);
+    const sendToWhatsApp = async () => {
+
+        try {
+
+            setIsDataSaving(true)
+
+            if (!selectedImage || !phone || !userAddress) {
+                setIsDataSaving(false)
+                Alert.alert("Missing info", "Please fill all required fields");
+                return;
+            }
+
+
+
+            const fileName = `ticket_${Date.now()}.jpg`;
+            const refStorage = await Storage()
+                .ref(`care2home/images/${fileName}`);
+
+            const responseess=  await refStorage.putFile(selectedImage);
+
+            const getDownloadUrl = await refStorage.getDownloadURL();
+
+
+            const addPromise = firestore().collection('orders').add({
+                phone,
+                emergency,
+                email,
+                "userEmal":loggedUser.email,
+                ImageUrl: getDownloadUrl ||''
+            }).then(() => {
+                console.log("user added")
+                setIsDataSaving(false);
+                Alert.alert("Hi Sir",'Your request has been submitted. our team will be connecting within 1 hour.')
+            }).catch((error) => {
+                setIsDataSaving(false)
+                Alert.alert("Hi", "Some error has happened, please try later or contact team via whatsapp")
+                console.log(error);
+            });
+
+            console.log("📝 Add promise created, awaiting...");
+            console.log("addPromiseaddPromise", addPromise)
+
+            setPhone('');
+            setEmail('');
+            setUserAddress('');
+            setSelectedImage('');
+            setEmergency('');
+
+        } catch (error: any) {
+            console.error('🚨 CATCH BLOCK - Firestore error:', error);
+            console.error('🚨 Error type:', typeof error);
+            console.error('🚨 Error code:', error?.code);
+            console.error('🚨 Error message:', error?.message);
+            console.error('🚨 Full error:', JSON.stringify(error, null, 2));
+            Alert.alert(
+                'Order Error',
+                `Code: ${error?.code || 'unknown'}\nMessage: ${error?.message || String(error)}`
+            );
+        }
     };
 
 
@@ -171,12 +164,12 @@ try {
                     style={styles.addressInput}
                     placeholder="Enter complete pickup/drop address"
                     multiline
+
                     textAlignVertical="top"
                     value={userAddress}
                     onChangeText={setUserAddress}
                 />
-                {/* Contact Info */}
-                <Text style={styles.sectionTitle}>Contact Information</Text>
+
 
                 <Label text="Your Phone Number" />
                 <TextInput
@@ -196,34 +189,15 @@ try {
                     onChangeText={setEmail}
                 />
 
-                <Label text="Emergency Contact" />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Alternate contact number"
-                    keyboardType="phone-pad"
-                    value={emergency}
-                    onChangeText={setEmergency}
-                />
-
-                {/* INFO BOX */}
-                <View style={styles.infoBox}>
-                    <Text style={styles.infoSmall}>
-                        All Care Companions are background-verified and trained to assist
-                        elderly parents
-                    </Text>
-
-                    <Text style={styles.infoNote}>
-                        <Text style={{ fontWeight: "700" }}>Note:</Text> This is a booking
-                        request. Our team will call you within 2 hours to confirm details and
-                        payment. No payment is required now.
-                    </Text>
-                </View>
-
-                {/* SUBMIT */}
                 <Pressable style={styles.submitBtn} onPress={sendToWhatsApp}>
-                    <Text style={styles.submitText}>
-                        Submit Request • We’ll Call You
-                    </Text>
+                    {isDataSaving ?
+                        <View style={{ flexDirection: 'row' }}>
+                            <Text style={styles.submitText}>
+                                Saving your data
+                            </Text><ActivityIndicator size='small' color={"#fff"} />
+                        </View> : <Text style={styles.submitText}>
+                            Submit Request • We’ll Call You
+                        </Text>}
                 </Pressable>
             </View>
         </ScrollView>
