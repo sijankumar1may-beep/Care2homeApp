@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "277367292672",
+    "firebase_url": "https://care2home-ff435-default-rtdb.firebaseio.com",
+    "project_id": "care2home-ff435",
+    "storage_bucket": "care2home-ff435.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:277367292672:android:ae2e38b0f55e12ffd3a9e5",
+        "android_client_info": {
+          "package_name": "com.care2home"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOZNkvGQb4FvxDJsRVwI78YAUyur7w4t0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
