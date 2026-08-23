@@ -1,16 +1,44 @@
+import { colors } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useDrawerStatus } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, useRouter, useSegments } from "expo-router";
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
-import { Alert, Linking, Pressable, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, BackHandler, Linking, Pressable, View } from 'react-native';
 import { Menu, Provider } from 'react-native-paper';
+
+
+const TAB_ROUTES = ['pricing', 'services', 'bookservice'] as const;
+
 const TabLayout = () => {
     const navigation = useNavigation();
     const drawerStatus = useDrawerStatus();
     const router = useRouter();
+    const segments = useSegments();
     const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        const backAction = () => {
+            const lastSegment = segments[segments.length - 1];
+            const isOtherTab = TAB_ROUTES.includes(lastSegment as (typeof TAB_ROUTES)[number]);
+
+            if (isOtherTab) {
+                router.navigate('/(drawer)/(tabs)');
+                return true;
+            }
+
+            Alert.alert('Hold on!', 'Are you sure you want to exit?', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'YES', onPress: () => BackHandler.exitApp() },
+            ]);
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+        return () => backHandler.remove();
+    }, [segments, router]);
+
     return <>
         <StatusBar
             style={drawerStatus === 'open' ? 'dark' : 'light'}
@@ -20,11 +48,11 @@ const TabLayout = () => {
         <Provider ><Tabs
             screenOptions={{
                 headerStyle: {
-                    backgroundColor: "#364153"
+                    backgroundColor: colors.headerBlue
                 },
                 headerTintColor: "white",
                 tabBarStyle: {
-                    backgroundColor: "#364153"
+                    backgroundColor: colors.headerBlue
                 },
 
                 tabBarActiveTintColor: "white",
@@ -107,7 +135,7 @@ const TabLayout = () => {
                             >
                                 <Menu.Item 
                                     onPress={() => {
-                                        router.push('/contact')
+                                        router.push({ pathname: '/web/[path]', params: { path: 'contact-us', title: 'Contact Us' } } as any)
                                         setVisible(false)
                                     }} 
                                     title="Contact us"
@@ -115,7 +143,7 @@ const TabLayout = () => {
                                 />
                                 <Menu.Item 
                                     onPress={() => {
-                                        router.push('/about')
+                                        router.push({ pathname: '/web/[path]', params: { path: 'about-us', title: 'About Us' } } as any)
                                         setVisible(false)
                                     }} 
                                     title="Who we are"
@@ -131,7 +159,9 @@ const TabLayout = () => {
         >
             <Tabs.Screen name="index" options={{
                 tabBarLabel: 'Home',
-                headerTitle: "Care2home", tabBarIcon: (props) => {
+                headerTitle: "Home",
+                
+                tabBarIcon: (props) => {
                     return <Ionicons name={props.focused ? "home-sharp" : "home-outline"} color={props.color} size={24} />
                 },
             }} />
@@ -142,11 +172,11 @@ const TabLayout = () => {
                 },
             }}
             />
-            <Tabs.Screen name="servicelocations" options={{
-                tabBarLabel: 'Serving',
-                headerTitle: "Service Locations",
+            <Tabs.Screen name="services" options={{
+                tabBarLabel: 'Services',
+                headerTitle: "Services",
                 tabBarIcon: (props) => {
-                    return <Ionicons name={props.focused ? 'location-sharp' : 'location-outline'} color={props.color} size={24} />
+                    return <Ionicons name={props.focused ? 'grid' : 'grid-outline'} color={props.color} size={24} />
                 },
             }} />
             <Tabs.Screen name="bookservice" options={{

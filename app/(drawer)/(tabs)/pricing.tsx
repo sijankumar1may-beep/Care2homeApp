@@ -1,431 +1,254 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-
-import React, { useState } from "react";
+import { AddressAutocomplete } from '@/components/AddressAutocomplete';
+import { JourneyPriceBreakdown } from '@/components/JourneyPriceBreakdown';
+import { Button, Card, SectionTitle } from '@/components/ui';
+import { calculateJourneyPrice, reverseGeocodeNominatim } from '@/lib/api/care2home';
+import { firstTimeUserDiscountPercent } from '@/lib/pricing/pricing-config';
+import type { VehicleType } from '@/lib/pricing/pricing-config';
+import type { JourneyPricingResult } from '@/lib/types/pricing';
+import { colors } from '@/lib/theme';
+import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  View
-} from "react-native";
+  View,
+} from 'react-native';
 
-
-
-
-type VehicleType = "auto" | "car";
-
-const pricingTiers = [
-  {
-    range: "0-10 km",
-    distanceKm: "0-10",
-    auto: 599,
-    car: 899,
-    description: "Perfect for short local journeys",
-  },
-  {
-    range: "10-20 km",
-    distanceKm: "10-20",
-    auto: 899,
-    car: 1299,
-    description: "Ideal for nearby areas",
-    popular: true,
-  },
-  {
-    range: "20-30 km",
-    distanceKm: "20-30",
-    auto: 1199,
-    car: 1699,
-    description: "For longer city travels",
-  },
-  {
-    range: "30-50 km",
-    distanceKm: "30-50",
-    auto: 1599,
-    car: 2199,
-    description: "Extended journeys across NCR",
-  },
-  {
-    range: "50+ km",
-    distanceKm: "50+",
-    auto: null,
-    car: 2499,
-    description: "Long distance travel (Car only)",
-  },
+const features = [
+  'Verified Care Companion',
+  'Live Journey Tracking',
+  'Help with Luggage & Stairs',
+  'Till Home Safety Promise',
+  'Real-time Updates to Family',
+  '24/7 Emergency Support',
 ];
 
-export default function PricingSection() {
-  const [vehicle, setVehicle] = useState<VehicleType>("car");
-  const router = useRouter();
-  const [toggleValue, setToggleValue] = useState(false);
-  
+const vehicleOptions: { type: VehicleType; label: string; description: string }[] = [
+  { type: 'car', label: 'Car', description: 'Comfortable car for longer journeys' },
+  { type: 'auto', label: 'Auto', description: 'Auto-rickshaw for shorter city trips' },
+];
+
+export default function PricingScreen() {
+  const [originAddress, setOriginAddress] = useState('');
+  const [destinationAddress, setDestinationAddress] = useState('');
+  const [originPlaceTypes, setOriginPlaceTypes] = useState<string[]>([]);
+  const [destinationPlaceTypes, setDestinationPlaceTypes] = useState<string[]>([]);
+  const [vehicleType, setVehicleType] = useState<VehicleType>('car');
+  const [pricing, setPricing] = useState<JourneyPricingResult | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [isLoadingOrigin, setIsLoadingOrigin] = useState(false);
+  const [error, setError] = useState('');
+
+  const getCurrentAddress = async () => {
+    setIsLoadingOrigin(true);
+    setError('');
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Location access denied. Please enable location permissions.');
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const address = await reverseGeocodeNominatim(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
+      setOriginAddress(address);
+      setOriginPlaceTypes([]);
+    } catch (err: any) {
+      setError(err.message || 'Failed to get current address.');
+    } finally {
+      setIsLoadingOrigin(false);
+    }
+  };
+
+  const calculatePrice = async () => {
+    setError('');
+    setPricing(null);
+
+    if (!originAddress.trim()) {
+      setError('Please enter a pickup address');
+      return;
+    }
+    if (!destinationAddress.trim()) {
+      setError('Please enter a destination address');
+      return;
+    }
+
+    setIsCalculating(true);
+    try {
+      const result = await calculateJourneyPrice({
+        originAddress: originAddress.trim(),
+        destinationAddress: destinationAddress.trim(),
+        vehicleType,
+        originPlaceTypes,
+        destinationPlaceTypes,
+      });
+      setPricing(result);
+    } catch (err: any) {
+      setError(err.message || 'Failed to calculate price. Please try again.');
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
+  const bookNow = () => {
+    router.push({
+      pathname: '/(drawer)/(tabs)/bookservice',
+      params: {
+        source: 'pricing',
+        origin: originAddress,
+        destination: destinationAddress,
+        vehicleType,
+        pricingJson: pricing ? JSON.stringify(pricing) : '',
+      },
+    } as any);
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        {/* <Text style={styles.intro}>
-          Most families book us when they can’t leave office or live in another
-          city — and don’t want to take risks with their parents.
-        </Text> */}
-
-        <Text style={styles.title}>Simple, Transparent Pricing</Text>
-
-        <Text style={styles.subTitle}>
-          Choose your distance range and vehicle type. No hidden charges,
-          complete care guaranteed.
-        </Text>
-
-        {/* VEHICLE TOGGLE */}
-        <View style={styles.toggle}>
-          <ToggleButtonWithMaterialIcons
-            label="Auto"
-            icon="taxi-sharp"
-            active={vehicle === "auto"}
-            onPress={() => setVehicle("auto")}
-          />
-          <ToggleButton
-            label="Car"
-            icon="car"
-            active={vehicle === "car"}
-            onPress={() => setVehicle("car")}
-          />
-        </View>
-
-        <Text style={styles.meta}>
-          Price includes Care Companion, vehicle & till-home assistance
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.discountBanner}>
+        <Ionicons name="sparkles" size={18} color={colors.white} />
+        <Text style={styles.discountText}>
+          {firstTimeUserDiscountPercent}% OFF — First Booking
         </Text>
       </View>
 
-      {/* PRICING CARDS */}
-      {pricingTiers.map((item, index) => {
-        if (vehicle === "auto" && item.range === "50+ km") return null;
-        let price = vehicle === 'auto' ? item.auto : item.car;
-        return (
-          <View
-            key={index}
-            style={[
-              styles.card,
-              item.popular && styles.popularCard,
-            ]}
-          >
-            {item.popular && (
-              <Text style={styles.popularBadge}>MOST POPULAR</Text>
-            )}
+      <SectionTitle
+        title="Calculate Your Journey Price"
+        subtitle="Distance-based pricing with no hidden charges"
+      />
 
-            {vehicle === 'car' ? (
-              <View style={styles.cardTitleRow}>
-                <Ionicons name="car-sharp" size={22} color="#2563EB" />
-                <Text style={styles.cardTitle}>{item.range}</Text>
-              </View>
-            ) : (
-              <View style={styles.cardTitleRow}>
-                <MaterialIcons name="electric-rickshaw" size={22} color="#2563EB" />
-                <Text style={styles.cardTitle}>{item.range}</Text>
-              </View>
-            )}
-            {/* <Text style={styles.cardTitle}>{vehicle === 'car' ? 'Car' : 'Auto'} {item.range}</Text> */}
-            <Text style={styles.cardDesc}>{item.description}</Text>
-
-            <Text style={styles.price}>₹{price}</Text>
-            <Text style={styles.per}>per journey</Text>
-
-            <Pressable
-              style={styles.bookBtn}
-              onPress={() =>
-                router.push(
-                  `/bookservice?distance=${item.distanceKm}&vehicle=${vehicle}&price=${price}`
-                )
-              }
-            >
-              <Text style={styles.bookText}>Book Pickup</Text>
+      <Card>
+        <AddressAutocomplete
+          label="Pickup Address (Origin)"
+          value={originAddress}
+          onChangeText={setOriginAddress}
+          onSelect={(s) => {
+            setOriginPlaceTypes(s.placeTypes ?? []);
+          }}
+          placeholder="Enter pickup location"
+          headerAction={
+            <Pressable onPress={getCurrentAddress} style={styles.locationBtn}>
+              {isLoadingOrigin ? (
+                <ActivityIndicator size="small" color={colors.primaryBlue} />
+              ) : (
+                <>
+                  <Ionicons name="navigate" size={14} color={colors.primaryBlue} />
+                  <Text style={styles.locationBtnText}>Use Current Location</Text>
+                </>
+              )}
             </Pressable>
-          </View>
-        );
-      })}
+          }
+        />
 
-      {/* INCLUDED SECTION */}
-      <View style={styles.includedBox}>
-        <View style={styles.includedHeader}>
-          <Ionicons name="information-circle" size={24} color="#2563EB" />
-          <View>
-            <Text style={styles.includedTitle}>
-              What&apos;s Included in Every Journey
-            </Text>
-            <Text style={styles.includedDesc}>
-              Comprehensive care and safety features for every trip.
-            </Text>
-          </View>
+        <AddressAutocomplete
+          label="Destination Address (Home)"
+          value={destinationAddress}
+          onChangeText={setDestinationAddress}
+          onSelect={(s) => {
+            setDestinationPlaceTypes(s.placeTypes ?? []);
+          }}
+          placeholder="Enter destination"
+        />
+
+        <Text style={styles.vehicleLabel}>Vehicle Type</Text>
+        <View style={styles.vehicleRow}>
+          {vehicleOptions.map((option) => (
+            <Pressable
+              key={option.type}
+              style={[
+                styles.vehicleCard,
+                vehicleType === option.type && styles.vehicleCardActive,
+              ]}
+              onPress={() => setVehicleType(option.type)}
+            >
+              <Ionicons
+                name={option.type === 'car' ? 'car' : 'bicycle'}
+                size={24}
+                color={vehicleType === option.type ? colors.primaryBlue : colors.gray500}
+              />
+              <Text
+                style={[
+                  styles.vehicleTitle,
+                  vehicleType === option.type && styles.vehicleTitleActive,
+                ]}
+              >
+                {option.label}
+              </Text>
+              <Text style={styles.vehicleDesc}>{option.description}</Text>
+            </Pressable>
+          ))}
         </View>
 
-        {INCLUDES.map((item, index) => (
-          <View key={index} style={styles.includeRow}>
-            <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
-            <Text style={styles.includeText}>{item}</Text>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <Button onPress={calculatePrice} loading={isCalculating} style={{ marginTop: 8 }}>
+          Calculate Price
+        </Button>
+
+        {pricing ? (
+          <JourneyPriceBreakdown pricing={pricing} showCta onBookPress={bookNow} />
+        ) : null}
+      </Card>
+
+      <Card style={styles.featuresCard}>
+        <Text style={styles.featuresTitle}>What&apos;s Included in Every Journey</Text>
+        {features.map((feature) => (
+          <View key={feature} style={styles.featureRow}>
+            <Ionicons name="checkmark-circle" size={20} color={colors.ctaGreen} />
+            <Text style={styles.featureText}>{feature}</Text>
           </View>
         ))}
-      </View>
-
-      {/* FOOT NOTE */}
-      <Text style={styles.note}>
-        Prices are fixed for the distance range. No surge pricing, no hidden
-        charges.
-      </Text>
-
-      <Text style={styles.noteSmall}>
-        Auto available up to 30 km. For longer journeys, Car is recommended.
-      </Text>
-
+      </Card>
     </ScrollView>
   );
 }
 
-/* ---------- SMALL COMPONENTS ---------- */
-
-function ToggleButton({
-  label,
-  icon,
-  active,
-  onPress,
-}: any) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.toggleBtn, active && styles.toggleActive]}
-    >
-      <Ionicons
-        name={icon}
-        size={18}
-        color={active ? "#2563EB" : "#6B7280"}
-      />
-      <Text
-        style={[styles.toggleText, active && styles.toggleTextActive]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function ToggleButtonWithMaterialIcons({
-  label,
-  icon,
-  active,
-  onPress,
-}: any) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.toggleBtn, active && styles.toggleActive]}
-    >
-      <MaterialIcons
-        name='electric-rickshaw'
-        size={18}
-        color={active ? "#2563EB" : "#6B7280"}
-      />
-      <Text
-        style={[styles.toggleText, active && styles.toggleTextActive]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-const INCLUDES = [
-  "Verified Care Companion",
-  "Wheelchair Support",
-  "Live Journey Tracking",
-  "Help with Luggage & Stairs",
-  "Till Home Safety Promise",
-  "Real-time Updates to Family",
-  "24/7 Emergency Support",
-];
-
-/* ---------- STYLES ---------- */
-
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-  },
-
-  header: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-
-  intro: {
-    fontSize: 15,
-    color: "#374151",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 8,
-  },
-
-  subTitle: {
-    fontSize: 14,
-    color: "#4B5563",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-
-  toggle: {
-    flexDirection: "row",
-    backgroundColor: "#F3F4F6",
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 12,
-  },
-
-  toggleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  container: { flex: 1, backgroundColor: colors.careBlueLight },
+  content: { padding: 16, paddingBottom: 32 },
+  discountBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.primaryBlue,
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-
-  toggleActive: {
-    backgroundColor: "#FFFFFF",
-  },
-
-  toggleText: {
-    fontSize: 14,
-    color: "#6B7280",
-    fontWeight: "600",
-  },
-
-  toggleTextActive: {
-    color: "#2563EB",
-  },
-
-  meta: {
-    fontSize: 12,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-
-  card: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
     marginBottom: 16,
-    alignItems: "center",
   },
-
-  popularCard: {
-    borderColor: "#2563EB",
-    transform: [{ scale: 1.02 }],
+  discountText: { color: colors.white, fontWeight: '700', fontSize: 14 },
+  locationBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  locationBtnText: { fontSize: 12, color: colors.primaryBlue, fontWeight: '600' },
+  vehicleLabel: { fontSize: 14, fontWeight: '500', color: colors.gray700, marginBottom: 8, marginTop: 4 },
+  vehicleRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  vehicleCard: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: colors.gray200,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    backgroundColor: colors.white,
   },
-
-  popularBadge: {
-    position: "absolute",
-    top: -10,
-    backgroundColor: "#2563EB",
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontWeight: "700",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-
-  cardTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginLeft: 8,
-  },
-
-  cardDesc: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginBottom: 8,
-  },
-
-  price: {
-    fontSize: 36,
-    fontWeight: "800",
-    color: "#2563EB",
-  },
-
-  per: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 12,
-  },
-
-  bookBtn: {
-    backgroundColor: "#2563EB",
-    borderRadius: 14,
-    paddingVertical: 12,
-    width: "100%",
-    alignItems: "center",
-  },
-
-  bookText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-  },
-
-  includedBox: {
-    backgroundColor: "#EFF6FF",
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 20,
-  },
-
-  includedHeader: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-  },
-
-  includedTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-
-  includedDesc: {
-    fontSize: 13,
-    color: "#4B5563",
-  },
-
-  includeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 8,
-  },
-
-  includeText: {
-    fontSize: 14,
-    color: "#374151",
-  },
-
-  note: {
-    textAlign: "center",
-    color: "#4B5563",
-    marginTop: 20,
-  },
-
-  noteSmall: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 4,
-  },
+  vehicleCardActive: { borderColor: colors.primaryBlue, backgroundColor: colors.careBlueLight },
+  vehicleTitle: { fontSize: 15, fontWeight: '600', color: colors.gray700, marginTop: 6 },
+  vehicleTitleActive: { color: colors.primaryBlue },
+  vehicleDesc: { fontSize: 11, color: colors.gray500, textAlign: 'center', marginTop: 4 },
+  error: { color: colors.danger, fontSize: 14, marginBottom: 8 },
+  featuresCard: { marginTop: 16 },
+  featuresTitle: { fontSize: 16, fontWeight: '700', color: colors.gray900, marginBottom: 12 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  featureText: { fontSize: 14, color: colors.gray700, flex: 1 },
 });

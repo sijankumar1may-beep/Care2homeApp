@@ -134,7 +134,7 @@ export default function EditProfileScreen() {
                     onPress={handleSave}
                     style={{
                         marginTop: 30,
-                        backgroundColor: '#364153',
+                        backgroundColor: '#1e40af',
                         paddingVertical: 14,
                         borderRadius: 10,
                         alignItems: 'center',

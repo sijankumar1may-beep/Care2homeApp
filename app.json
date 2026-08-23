@@ -13,10 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/applogo.png",
-        "backgroundImage": "./assets/images/applogo.png",
-        "monochromeImage": "./assets/images/applogo.png"
+        "backgroundColor": "#3B82F6",
+        "foregroundImage": "./assets/images/applogo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -25,16 +23,16 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/care2homefavicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/fulliconnew.png",
-          "imageWidth": 200,
-          "backgroundColor": "#364153",
+          "image": "./assets/images/care2homefavicon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#1e40af",
           "dark": {
             "backgroundColor": "#F3F6F8"
           }

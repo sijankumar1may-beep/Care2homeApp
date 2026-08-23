@@ -1,4 +1,5 @@
 import { AuthContext } from "@/auth/AuthContext";
+import { colors } from "@/lib/theme";
 import { Redirect, Stack, useSegments } from "expo-router";
 import { useContext } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -38,7 +39,7 @@ export default function AuthGate() {
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#364153"
+          backgroundColor: colors.headerBlue
         },
         headerTintColor: "white",
         animation: 'simple_push',
@@ -46,6 +47,7 @@ export default function AuthGate() {
       }}>
       <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="web" options={{ headerShown: false }} />
       {/* <Stack.Screen name="+not-found" options={{ headerTitle: "Not found", headerTintColor: "green" }} /> */}
       {/* <Stack.Screen name="profile" options={{ headerTitle: "Profile", animation: 'slide_from_left', headerBackButtonMenuEnabled: false }} /> */}
     </Stack>

@@ -1,4 +1,5 @@
 import { AuthContext } from '@/auth/AuthContext';
+import { colors } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useContext } from 'react';
@@ -18,7 +19,7 @@ const user=Auth.user;
       {/* HEADER */}
       <View
         style={{
-          backgroundColor: '#364153',
+          backgroundColor: colors.headerBlue,
           paddingVertical: 40,
           alignItems: 'center',
         }}
@@ -48,7 +49,7 @@ const user=Auth.user;
             borderRadius: 20,
           }}
         >
-          <Text style={{ color: '#364153', fontWeight: '600' }}>
+          <Text style={{ color: colors.headerBlue, fontWeight: '600' }}>
             Edit Profile
           </Text>
         </Pressable>
@@ -107,7 +108,7 @@ function ProfileItem({ icon, label, value }: ProfileItemProps) {
         marginBottom: 12,
       }}
     >
-      <Ionicons name={icon as any} size={22} color="#364153" />
+      <Ionicons name={icon as any} size={22} color={colors.headerBlue} />
       <View style={{ marginLeft: 12 }}>
         <Text style={{ color: '#64748B', fontSize: 12 }}>{label}</Text>
         <Text style={{ fontSize: 15, fontWeight: '500' }}>{value}</Text>
@@ -139,7 +140,7 @@ function ActionItem({ icon, title, onPress, danger = false }: ActionItemProps) {
       <Ionicons
         name={icon as any}
         size={22}
-        color={danger ? '#DC2626' : '#364153'}
+        color={danger ? colors.danger : colors.headerBlue}
       />
       <Text
         style={{

@@ -1,214 +1,189 @@
-import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
-import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { AuthScreenLayout } from '@/components/auth/AuthScreenLayout';
+import { OtpInput } from '@/components/auth/OtpInput';
+import { PhoneInput } from '@/components/auth/PhoneInput';
+import { StepIndicator } from '@/components/auth/StepIndicator';
+import { Button } from '@/components/ui/Button';
+import { colors, spacing } from '@/lib/theme';
+import { getAuth, signInWithPhoneNumber } from '@react-native-firebase/auth';
+import { useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+
+type StatusMessage = { type: 'success' | 'error'; text: string } | null;
 
 export default function LoginScreen() {
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [confirm, setConfirm] = useState<any>(null);
-    const [code, setCode] = useState('');
-    const [loading, setLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [confirm, setConfirm] = useState<any>(null);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<StatusMessage>(null);
 
-    const handleSendCode = async () => {
-        if (!phoneNumber.trim()) {
-            Alert.alert("Error", "Please enter your phone number");
-            return;
-        }
+  const handleSendCode = async () => {
+    if (!phoneNumber.trim()) {
+      setStatus({ type: 'error', text: 'Please enter your phone number' });
+      return;
+    }
 
-        // Format phone number to E.164 format (e.g., +919876543210)
-        let formattedPhone = phoneNumber.trim();
-        
-        // Remove any spaces, dashes, or parentheses
-        formattedPhone = formattedPhone.replace(/[\s\-\(\)]/g, '');
-        
-        // Add country code if not present
-        if (!formattedPhone.startsWith('+')) {
-            // If it starts with 0, remove it and add +91
-            if (formattedPhone.startsWith('0')) {
-                formattedPhone = `+91${formattedPhone.substring(1)}`;
-            } else {
-                formattedPhone = `+91${formattedPhone}`;
-            }
-        }
+    let formattedPhone = phoneNumber.trim();
+    formattedPhone = formattedPhone.replace(/[\s\-\(\)]/g, '');
 
-        console.log("📱 Formatted phone number:", formattedPhone);
-        console.log("📱 Original phone number:", phoneNumber);
+    if (!formattedPhone.startsWith('+')) {
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = `+91${formattedPhone.substring(1)}`;
+      } else {
+        formattedPhone = `+91${formattedPhone}`;
+      }
+    }
 
-        // Validate phone number length (should be 10 digits + country code)
-        if (formattedPhone.length < 12 || formattedPhone.length > 15) {
-            Alert.alert("Error", "Please enter a valid phone number (10 digits)");
-            return;
-        }
+    if (formattedPhone.length < 12 || formattedPhone.length > 15) {
+      setStatus({ type: 'error', text: 'Please enter a valid 10-digit phone number' });
+      return;
+    }
 
-        setLoading(true);
-        try {
-            console.log("🔥 Calling signInWithPhoneNumber with:", formattedPhone);
-            const confirmation = await signInWithPhoneNumber(getAuth(), formattedPhone);
-          
-            setConfirm(confirmation);
-            Alert.alert(
-                "Code Sent", 
-                `Verification code has been sent to ${formattedPhone}. Please check your SMS.`
-            );
-        } catch (error: any) {
-            console.error("❌ Phone auth error:", error);
-            console.error("❌ Error code:", error.code);
-            console.error("❌ Error message:", error.message);
-            
-            let errorMessage = "Failed to send verification code";
-            
-            if (error.code === 'auth/invalid-phone-number') {
-                errorMessage = "Invalid phone number format. Please enter a valid number.";
-            } else if (error.code === 'auth/too-many-requests') {
-                errorMessage = "Too many requests. Please try again later.";
-            } else if (error.code === 'auth/quota-exceeded') {
-                errorMessage = "SMS quota exceeded. Please try again later or contact support.";
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-            
-            Alert.alert("Error", errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+    setStatus(null);
+    try {
+      const confirmation = await signInWithPhoneNumber(getAuth(), formattedPhone);
+      setConfirm(confirmation);
+      setStatus({
+        type: 'success',
+        text: `Verification code sent to ${formattedPhone}`,
+      });
+    } catch (error: any) {
+      let errorMessage = 'Failed to send verification code';
 
-    const handleVerifyCode = async () => {
-        if (!code.trim()) {
-            Alert.alert("Error", "Please enter the verification code");
-            return;
-        }
+      if (error.code === 'auth/invalid-phone-number') {
+        errorMessage = 'Invalid phone number format. Please enter a valid number.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many requests. Please try again later.';
+      } else if (error.code === 'auth/quota-exceeded') {
+        errorMessage = 'SMS quota exceeded. Please try again later or contact support.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
 
-        if (!confirm) {
-            Alert.alert("Error", "Please send verification code first");
-            return;
-        }
+      setStatus({ type: 'error', text: errorMessage });
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setLoading(true);
-        try {
-            await confirm.confirm(code);
-            Alert.alert("Success", "Login successful!");
-            
-        } catch (error: any) {
-            console.error("Code verification error:", error);
-            Alert.alert("Error", "Invalid verification code. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleVerifyCode = async () => {
+    if (!code.trim()) {
+      setStatus({ type: 'error', text: 'Please enter the verification code' });
+      return;
+    }
 
-    return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+    if (!confirm) {
+      setStatus({ type: 'error', text: 'Please send verification code first' });
+      return;
+    }
 
-            <Text style={styles.label}>Enter your phone number</Text>
-            <TextInput
-                placeholder="Phone Number (e.g., 9876543210)"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                style={styles.input}
-                keyboardType="phone-pad"
-                editable={!confirm}
-            />
+    setLoading(true);
+    setStatus(null);
+    try {
+      await confirm.confirm(code);
+      setStatus({ type: 'success', text: 'Login successful!' });
+    } catch {
+      setStatus({ type: 'error', text: 'Invalid verification code. Please try again.' });
+      Alert.alert('Error', 'Invalid verification code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {confirm && (
-                <>
-                    <Text style={styles.label}>Enter verification code</Text>
-                    <TextInput
-                        placeholder="6-digit code"
-                        value={code}
-                        onChangeText={setCode}
-                        style={styles.input}
-                        keyboardType="number-pad"
-                        maxLength={6}
-                    />
-                </>
-            )}
+  const handleChangePhone = () => {
+    setConfirm(null);
+    setCode('');
+    setStatus(null);
+  };
 
-            <TouchableOpacity 
-                style={[styles.button, loading && styles.buttonDisabled]} 
-                onPress={confirm ? handleVerifyCode : handleSendCode}
-                disabled={loading}
-            >
-                <Text style={styles.buttonText}>
-                    {loading 
-                        ? "Please wait..." 
-                        : confirm 
-                            ? "Verify Code" 
-                            : "Send Verification Code"
-                    }
-                </Text>
-            </TouchableOpacity>
+  return (
+    <AuthScreenLayout
+      title="Welcome back"
+      subtitle="We'll send a one-time code to your phone"
+    >
+      <StepIndicator currentStep={confirm ? 2 : 1} />
 
-            {confirm && (
-                <TouchableOpacity 
-                    style={styles.linkButton}
-                    onPress={() => {
-                        setConfirm(null);
-                        setCode('');
-                    }}
-                >
-                    <Text style={styles.link}>Change phone number</Text>
-                </TouchableOpacity>
-            )}
+      <PhoneInput
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+        disabled={!!confirm}
+      />
 
-            {/* <TouchableOpacity onPress={() => router.push("/(auth)/signup")}>
-                <Text style={styles.link}>Don't have an account? Sign up</Text>
-            </TouchableOpacity> */}
+      {confirm ? <OtpInput value={code} onChange={setCode} /> : null}
+
+      {status ? (
+        <View
+          style={[
+            styles.statusBox,
+            status.type === 'success' ? styles.statusSuccess : styles.statusError,
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusText,
+              status.type === 'success' ? styles.statusTextSuccess : styles.statusTextError,
+            ]}
+          >
+            {status.text}
+          </Text>
         </View>
-    );
+      ) : null}
+
+      <Button
+        onPress={confirm ? handleVerifyCode : handleSendCode}
+        loading={loading}
+        size="lg"
+        style={styles.primaryButton}
+      >
+        {confirm ? 'Verify Code' : 'Send Verification Code'}
+      </Button>
+
+      {confirm ? (
+        <Button variant="outline" onPress={handleChangePhone} size="md" style={styles.secondaryButton}>
+          Change phone number
+        </Button>
+      ) : null}
+    </AuthScreenLayout>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1, 
-        justifyContent: "center", 
-        padding: 20,
-        backgroundColor: "#FFF",
-    },
-    title: { 
-        fontSize: 28, 
-        fontWeight: "bold", 
-        marginBottom: 20, 
-        textAlign: "center",
-        color: "#111827",
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "500",
-        marginBottom: 8,
-        color: "#374151",
-    },
-    input: { 
-        borderWidth: 1, 
-        borderColor: "#D1D5DB",
-        padding: 12, 
-        borderRadius: 8, 
-        marginBottom: 12,
-        fontSize: 16,
-        backgroundColor: "#FFF",
-    },
-    button: { 
-        backgroundColor: "#000", 
-        padding: 15, 
-        borderRadius: 8,
-        marginTop: 8,
-    },
-    buttonDisabled: {
-        opacity: 0.6,
-    },
-    buttonText: { 
-        color: "#fff", 
-        textAlign: "center", 
-        fontWeight: "bold",
-        fontSize: 16,
-    },
-    linkButton: {
-        marginTop: 12,
-    },
-    link: { 
-        marginTop: 15, 
-        textAlign: "center", 
-        color: "#2563EB",
-        fontSize: 14,
-    },
+  primaryButton: {
+    marginTop: spacing.sm,
+  },
+  secondaryButton: {
+    marginTop: spacing.md,
+  },
+  statusBox: {
+    padding: spacing.md,
+    borderRadius: 8,
+    marginBottom: spacing.md,
+  },
+  statusSuccess: {
+    backgroundColor: '#dcfce7',
+  },
+  statusError: {
+    backgroundColor: '#fee2e2',
+  },
+  statusText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  statusTextSuccess: {
+    color: colors.ctaGreenDark,
+  },
+  statusTextError: {
+    color: colors.danger,
+  },
+  footerLink: {
+    fontSize: 14,
+    color: colors.gray700,
+    textAlign: 'center',
+  },
+  footerLinkBold: {
+    color: colors.primaryBlue,
+    fontWeight: '600',
+  },
 });

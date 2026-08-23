@@ -1,3 +1,4 @@
+import { colors } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { JSX } from 'react';
@@ -81,7 +82,7 @@ export default function NavigationLinks({
           <Ionicons
             name={item.icon}
             size={22}
-            color={item.danger ? '#DC2626' : '#364153'}
+            color={item.danger ? colors.danger : colors.headerBlue}
           />
           <Text
             style={[
