@@ -1,4 +1,3 @@
-import { firstTimeUserDiscountPercent } from '@/lib/pricing/pricing-config';
 import { colors, WHATSAPP_NUMBER } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,7 +37,7 @@ export default function DiscountPopup() {
   };
 
   const openWhatsApp = () => {
-    const message = `Hi, I'm interested in the ${firstTimeUserDiscountPercent}% discount offer for Care2Home's parent pickup and drop service. Could you please share more details?`;
+    const message = `Hi, I'm interested in the ₹100 off offer for Care2Home's parent pickup and drop service. Could you please share more details?`;
     Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`);
     handleClose();
   };
@@ -57,7 +56,7 @@ export default function DiscountPopup() {
           </Pressable>
 
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{firstTimeUserDiscountPercent}% OFF</Text>
+            <Text style={styles.badgeText}>₹100 OFF</Text>
           </View>
 
           <Text style={styles.title}>
@@ -66,7 +65,7 @@ export default function DiscountPopup() {
           </Text>
 
           <Text style={styles.description}>
-            Get <Text style={styles.bold}>{firstTimeUserDiscountPercent}% discount</Text> on your
+            Get <Text style={styles.bold}>₹100 off</Text> on your
             first booking. Safe travel for your parents, peace of mind for you.
           </Text>
 

@@ -30,11 +30,11 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/care2homefavicon.png",
-          "imageWidth": 160,
+          "image": "./assets/images/splash-logo-tagline.png",
+          "imageWidth": 288,
           "backgroundColor": "#1e40af",
           "dark": {
-            "backgroundColor": "#F3F6F8"
+            "backgroundColor": "#1e40af"
           }
         }
       ],

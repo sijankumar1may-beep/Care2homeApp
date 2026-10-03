@@ -1,7 +1,6 @@
 import { colors } from '@/lib/theme';
-import { firstTimeUserDiscountPercent } from '@/lib/pricing/pricing-config';
 
-export const offerMarqueeText = `${firstTimeUserDiscountPercent}% OFF your first booking — limited time`;
+export const offerMarqueeText = '₹100 OFF your first booking — limited time';
 
 export const heroMessages = [
   'Parents arriving today or tomorrow?',

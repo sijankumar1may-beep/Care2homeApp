@@ -1,3 +1,4 @@
+import { consumeEmbeddedWebViewBack } from '@/components/EmbeddedWebView';
 import { colors } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useDrawerStatus } from '@react-navigation/drawer';
@@ -20,6 +21,8 @@ const TabLayout = () => {
 
     useEffect(() => {
         const backAction = () => {
+            if (consumeEmbeddedWebViewBack()) return true;
+
             const lastSegment = segments[segments.length - 1];
             const isOtherTab = TAB_ROUTES.includes(lastSegment as (typeof TAB_ROUTES)[number]);
 
@@ -166,26 +169,27 @@ const TabLayout = () => {
                 },
             }} />
             <Tabs.Screen name="pricing" options={{
-                tabBarLabel: 'Pricing',
-                headerTitle: "Pricing", tabBarIcon: (props) => {
+                tabBarLabel: 'Calculate Price',
+                headerTitle: "Calcularte Price", tabBarIcon: (props) => {
                     return <Ionicons name={props.focused ? 'pricetag-sharp' : 'pricetag-outline'} color={props.color} size={24} />
                 },
             }}
             />
-            <Tabs.Screen name="services" options={{
-                tabBarLabel: 'Services',
-                headerTitle: "Services",
-                tabBarIcon: (props) => {
-                    return <Ionicons name={props.focused ? 'grid' : 'grid-outline'} color={props.color} size={24} />
-                },
-            }} />
+            
             <Tabs.Screen name="bookservice" options={{
-                tabBarLabel: 'BookService',
+                tabBarLabel: 'Book Service',
                 headerTitle: "Book service", tabBarIcon: (props) => {
                     return <Ionicons name={props.focused ? 'calendar-number' : 'calendar-number-outline'} color={props.color} size={24} />
                 },
             }}
             />
+            <Tabs.Screen name="services" options={{
+                tabBarLabel: 'Our Services',
+                headerTitle: "Our Services",
+                tabBarIcon: (props) => {
+                    return <Ionicons name={props.focused ? 'grid' : 'grid-outline'} color={props.color} size={24} />
+                },
+            }} />
         </Tabs >
         </Provider>
     </>
